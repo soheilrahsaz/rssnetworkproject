@@ -4,7 +4,11 @@ import com.example.main.domain.Category;
 import com.example.main.domain.Feed;
 import com.example.main.domain.News;
 import com.example.main.repository.StaticRepository;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 import static com.example.main.repository.StaticRepository.*;
 
@@ -30,42 +34,71 @@ public class NewsController {
             cat.setName(category.getName());
             return cat;
         }).collect(Collectors.toList());*/
-        return categories;
+        return categories.stream().filter(category -> !category.getFeeds().isEmpty()).collect(Collectors.toList());
     }
-
-    @PostMapping("/categories")
-    public Category addCategory(@RequestBody Category category)
+    @PostMapping("/feeds")
+    public Feed addFeed(@Valid @RequestBody Feed feed, BindingResult bindingResult)throws Exception
     {
-        return StaticRepository.addCategory(category.getName(), category.getColor());
+        if (bindingResult != null && bindingResult.hasErrors()) {
+            throw new Exception(getBindingReslutErrors(bindingResult));
+        }
+        Category cat = feed.getCategory();
+        if(cat == null)
+        {
+            throw new Exception("category was not provided");
+        }
+        Category cat2 = categories.stream().filter(c -> c.getName().equalsIgnoreCase(cat.getName().trim()))
+                .findAny().orElseGet(() -> addCategory(cat.getName(), cat.getColor()));
+        return StaticRepository.addFeed(feed.getName(), feed.getUrl(), cat2);
     }
 
-    @PostMapping("/categories/{categoryId}/feed")
-    public Feed addFeed(@RequestBody Feed feed, @PathVariable Integer categoryId)throws Exception
+    private String getBindingReslutErrors(BindingResult bindingResult) {
+        String errors = "";
+        for (ObjectError objectError : bindingResult.getAllErrors()) {
+            errors += objectError.getDefaultMessage() + ",";
+        }
+        return errors;
+    }
+
+    @DeleteMapping("/feeds/{feedId}")
+    public Boolean deleteFeed(@PathVariable Integer feedId)
     {
-        return StaticRepository.addFeed(feed.getName(), feed.getUrl(),categoryId);
+        StaticRepository.deleteFeed(feedId);
+        return true;
     }
 
-    @GetMapping("/categories/{categoryId}/feed")
-    public List<Feed> getFeeds(@PathVariable Integer categoryId) throws Exception
+    @GetMapping("/feeds")
+    public List<Feed> getFeeds() throws Exception
     {
         return categories.stream()
-                .filter(category -> category.getId() == categoryId)
                 .map(Category::getFeeds)
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
 
     }
 
-    @GetMapping("/feed/{feedId}/news")
-    public List<News> getFeedNews(@PathVariable Integer feedId)throws Exception
-    {
-        return newsService.getNews(getFeed(feedId));
-    }
+//    @GetMapping("/feed/{feedId}/news")
+//    public List<News> getFeedNews(@PathVariable Integer feedId)throws Exception
+//    {
+//        return newsService.getNews(getFeed(feedId));
+//    }
 
     @GetMapping("/categories/{categoryId}/news")
-    public List<News> getCategoryNews(@PathVariable Integer categoryId) throws Exception
+    public List<News> getCategoryNews(@PathVariable Integer categoryId,
+                                      @RequestParam(required = false) String query,
+                                      @RequestParam(required = false) Integer limit) throws Exception
     {
-        return newsService.getNews(getCategory(categoryId).getFeeds());
+        return newsService.getNews(getCategory(categoryId).getFeeds(), query, limit);
+    }
+
+    @GetMapping("/news")
+    public List<News> getAllNews(@RequestParam(required = false) String query,
+                                 @RequestParam(required = false) Integer limit) throws Exception
+    {
+        return newsService
+                .getNews(categories.stream()
+                        .flatMap(category -> category.getFeeds().stream())
+                        .collect(Collectors.toList()), query, limit);
     }
 
 }

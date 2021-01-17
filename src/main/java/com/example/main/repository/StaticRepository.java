@@ -41,8 +41,15 @@ public class StaticRepository {
         return addCategory(name, null);
     }
 
+    public static void deleteFeed(int feedId)
+    {
+        categories.stream().flatMap(category -> category.getFeeds().stream())
+                .filter(feed -> feed.getId() == feedId)
+                .findAny().ifPresent(feed -> feed.getCategory().getFeeds().remove(feed));
+    }
+
     public static Category addCategory(String name, String color) {
-        Category category = new Category(categoryId++, name, null, null);
+        Category category = new Category(categoryId++, name, color);
         StaticRepository.categories.add(category);
         return category;
     }

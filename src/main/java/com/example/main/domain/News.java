@@ -14,6 +14,9 @@ public class News {
     private String link;
     private String description;
     private String pubDate;
+    private Long dateMillies;
+
+    private Category category;
 
     private String pictureUrl;
 
