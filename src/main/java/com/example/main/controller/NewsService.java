@@ -113,10 +113,10 @@ public class NewsService {
 
     public List<News> getNews(List<Feed> feeds)
     {
-        return getNews(feeds, null, null);
+        return getNews(feeds, null, null, null, null, null);
     }
 
-    public List<News> getNews(List<Feed> feeds, String search, Integer limitPerGroup)
+    public List<News> getNews(List<Feed> feeds, String search, Integer limitPerGroup, Integer totalLimit, String dateFrom, String dateTo)
     {
         List<News> allnews = feeds.stream().parallel().map(feed -> getNews(feed,search)).flatMap(List::stream).collect(Collectors.toList());
         if(search != null)
@@ -131,6 +131,27 @@ public class NewsService {
         {
             allnews = allnews.stream().collect(Collectors.groupingBy(news -> news.getCategory().getId()))
                     .values().stream().flatMap(group -> group.stream().limit(limitPerGroup)).collect(Collectors.toList());
+        }
+
+        if(totalLimit != null)
+        {
+            allnews = allnews.stream().limit(totalLimit).collect(Collectors.toList());
+        }
+
+        if(dateFrom != null)
+        {
+            try {
+                final long dateFromMilies = new SimpleDateFormat("yyyy-MM-dd").parse(dateFrom).getTime();
+                allnews = allnews.stream().filter(news -> news.getDateMillies() >= dateFromMilies ).collect(Collectors.toList());
+            }catch (Exception e){}
+        }
+
+        if(dateTo != null)
+        {
+            try {
+                final long dateToMilies = new SimpleDateFormat("yyyy-MM-dd").parse(dateTo).getTime();
+                allnews = allnews.stream().filter(news -> news.getDateMillies() <= dateToMilies ).collect(Collectors.toList());
+            }catch (Exception e){}
         }
 
         allnews.stream().parallel().forEach(news -> {

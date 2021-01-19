@@ -86,19 +86,24 @@ public class NewsController {
     @GetMapping("/categories/{categoryId}/news")
     public List<News> getCategoryNews(@PathVariable Integer categoryId,
                                       @RequestParam(required = false) String query,
-                                      @RequestParam(required = false) Integer limit) throws Exception
+                                      @RequestParam(required = false) Integer limit,
+                                      @RequestParam(required = false) String dateFrom,
+                                      @RequestParam(required = false) String dateTo) throws Exception
     {
-        return newsService.getNews(getCategory(categoryId).getFeeds(), query, limit);
+        return newsService.getNews(getCategory(categoryId).getFeeds(), query, null, limit, dateFrom, dateTo);
     }
 
     @GetMapping("/news")
     public List<News> getAllNews(@RequestParam(required = false) String query,
-                                 @RequestParam(required = false) Integer limit) throws Exception
+                                 @RequestParam(required = false) Integer limit,
+                                 @RequestParam(required = false) Integer totalLimit,
+                                 @RequestParam(required = false) String dateFrom,
+                                 @RequestParam(required = false) String dateTo) throws Exception
     {
         return newsService
                 .getNews(categories.stream()
                         .flatMap(category -> category.getFeeds().stream())
-                        .collect(Collectors.toList()), query, limit);
+                        .collect(Collectors.toList()), query, limit, totalLimit, dateFrom, dateTo);
     }
 
 }
