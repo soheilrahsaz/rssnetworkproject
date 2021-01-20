@@ -27,16 +27,16 @@ public class Startup implements ApplicationListener<ContextRefreshedEvent> {
     {
 
         Category health = addCategory("health", "#9c27b0");
-        Category social = addCategory("Social", "#607d8b");
-        Category sports = addCategory("Sports", "#607d8b");
+        Category social = addCategory("Social", "#03a9f4");
+        Category sports = addCategory("Sports", "#f44336");
         Category economic = addCategory("Economic", "#e91e63");
         Category technology = addCategory("Technology", "#e91e63");
         Category international = addCategory("International", "#f44336");
         Category political = addCategory("Political", "#009688");
         Category world = addCategory("World", "#2196f3");
         Category entertainments = addCategory("Entertainments", "#00bcd4");
-        Category science = addCategory("Science", "#00bcd4");
-        Category other = addCategory("Other", "#673ab7");
+        Category science = addCategory("Science", "#2196f3");
+        Category other = addCategory("Other", "#607d8b");
 
 //        addFeed("MicroServices", "https://microservices.io/feed.xml", technology); //bad format
         addFeed("Yahoo ", "https://news.yahoo.com/rss/", other);
